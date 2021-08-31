@@ -21,6 +21,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # Input
 HEADERS += mainwindow.h
 FORMS += mainwindow.ui \
-    form.ui
+    form.ui \
+    formedit.ui
 SOURCES += main.cpp mainwindow.cpp
 RESOURCES += Ressources.qrc
