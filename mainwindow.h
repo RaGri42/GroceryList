@@ -21,6 +21,8 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    bool checkItem(QString itemStr);
+
 
     // Memberfunktionen
 
@@ -29,6 +31,7 @@ public:
 public slots:
     void pushItem();
     void deleteItem();
+    void deleteItemList();
     void editItem();
     void showDialog();
     void showEditDialog();

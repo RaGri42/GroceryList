@@ -22,20 +22,20 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-   // Anwendung nicht bei Dialogende schliessen
-   // dialog->setAttribute(Qt::WA_QuitOnClose);
-
+// _________________________________________________________________________________________________
+    // SIGNAL / SLOTS Mainwindow
     connect(ui->pushButton, SIGNAL(clicked()),this, SLOT(pushItem()));
-    connect(ui->pushButton_2, SIGNAL(clicked()),this, SLOT(deleteItem()));
+    connect(ui->pushButton_2, SIGNAL(clicked()),this, SLOT(deleteItemList()));
     connect(ui->tableWidget, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this, SLOT(pushItem()));
     connect(ui->tableWidget_2, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this, SLOT(deleteItem()));
     connect(ui->pushButton_4, SIGNAL(clicked()),this, SLOT(printList()));
     connect(ui->pushButton_5, SIGNAL(clicked()),this, SLOT(clearList()));
     connect(ui->pushButton_6, SIGNAL(clicked()),this, SLOT(initialize()));
-
     connect(ui->pushButton_3, SIGNAL(clicked()), this, SLOT(showDialog()));
     connect(ui->editButton, SIGNAL(clicked()), this, SLOT(showEditDialog()));
+    connect(ui->pushButton_7, SIGNAL(clicked()), this, SLOT(deleteItem()));
 
+// _________________________________________________________________________________________________
     // Neues Lebensmittel Dialog initialisieren
     newform = new QDialog;
     newform->setModal(true);
@@ -47,77 +47,86 @@ MainWindow::MainWindow(QWidget *parent)
     editform = new QDialog;
     editform->setModal(true);
     Formedit.setupUi(editform);
-    connect (Formedit.pushButton, SIGNAL(clicked()), this, SLOT(writeFood()));
+    connect (Formedit.pushButton, SIGNAL(clicked()), this, SLOT(editItem()));
     connect (Formedit.pushButton_2, SIGNAL(clicked()), editform, SLOT(close()));
-
-
-
 
     _anzElements = -1;
     _rowsTable2 = 1;
-   // model = new QStringListModel(this);
 
 }
-
-
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
 
-
 void MainWindow::initialize(){
 
-        _listVec.clear();
-        int i = 0;
-        int rows = 0;
-        // csv - Datei welche die Lebensmittel enthaelt
-        QString foodFile = "Einkaufszettel.csv";
-        QString path = "/home/botage/QTWorkspace/Einkaufsliste/Einkaufsliste/";
-        QString fileName = path + foodFile;
+    _listVec.clear();
+    int i = 0;
+    int rows = 0;
+    // csv - Datei welche die Lebensmittel enthaelt
+    QString foodFile = "Einkaufszettel.csv";
+    QString path = "/home/botage/QTWorkspace/Einkaufsliste/Einkaufsliste/";
+    QString fileName = path + foodFile;
+    QFile file(fileName);
 
-        QFile file(fileName);
-        if(file.open(QIODevice::ReadOnly)) {
-         std::cout << "ja ist offen";
-        }
-        else {
-            std::cout << "Ne ist zu!" << std::endl;
-        }
+    if(file.open(QIODevice::ReadOnly)) {
+        std::cout << "ja ist offen";
+    }
+    else {
+        std::cout << "Ne ist zu!" << std::endl;
+    }
 
-        QTextStream in(&file);
-        QString line;
+    QTextStream in(&file);
+    QString line;
 
+    // Datei einlesen und zeilenweise in Vector schreiben
+    // Anzahl der Reihen bestimmen
 
-
-
-        // Datei einlesen und zeilenweise in Vector schreiben
-        // Anzahl der Reihen bestimmen
-
-        while(!in.atEnd()) {
-            line = in.readLine();
-            _listVec.push_back(line);
-            rows++;
-        }
+    while(!in.atEnd()) {
+        line = in.readLine();
+        _listVec.push_back(line);
+        rows++;
+    }
 
 
 
-        ui->tableWidget->setRowCount(rows);
+    ui->tableWidget->setRowCount(rows);
 
-        for (auto& line1 : _listVec) {
+    for (auto& line1 : _listVec) {
         QTableWidgetItem *item = new QTableWidgetItem(line1);
         item->setFlags(Qt::ItemIsEnabled);
         ui->tableWidget->setItem(i,0, item);
         i++;
-        }
-        ui->tableWidget->sortItems(0);
+    }
+    ui->tableWidget->sortItems(0);
 
-
-       // QHeaderView* header = ui->tableWidget->horizontalHeader();
-       // header->setSectionResizeMode(QHeaderView::Stretch);
-
-        file.close();
+    file.close();
 }
+
+// ______________________________________________________________________
+// Pruefen ob String bereits vorkommt
+// ______________________________________________________________________
+//
+bool MainWindow::checkItem(QString itemStr) {
+
+    // Pruefen ob Eintrag schon vorhanden ist
+    auto ret = std::find(_listVec.begin(), _listVec.end(), itemStr);
+
+    // Eintrag schon vorhanden
+    if (ret != _listVec.end()) {
+        return 1;
+    }
+    // Eintrag nicht vorhanden
+    else {
+        return 0;
+     }
+
+
+    }
+
+
 
 void MainWindow::showDialog() {
 
@@ -126,7 +135,14 @@ void MainWindow::showDialog() {
 
 void MainWindow::showEditDialog() {
 
-  editform->show();
+    if(ui->tableWidget->currentItem()) {
+    editform->show();
+
+    // Setzt aktuellen Wert in lineEdit
+    Formedit.lineEdit->setText(ui->tableWidget->currentItem()->text());
+
+
+    }
 }
 
 void MainWindow::clearList() {
@@ -150,7 +166,6 @@ void MainWindow::printList() {
 
         painter.drawText(0,zeilePdf, "Einkaufsliste");
         zeilePdf += 400;
-
 
 
         // Zeilenweise in pdf schreiben
@@ -195,6 +210,8 @@ void MainWindow::writeFood() {
     }
 }
 
+
+
 // ___________________________________________________________________________________________
 // neue csv Liste speichern
 
@@ -231,35 +248,69 @@ void MainWindow::pushItem(){
 }
 
 
+// _________________________________________________________________________________________________
+void MainWindow::deleteItemList(){
 
-void MainWindow::deleteItem(){
-
-    int reihe =  ui->tableWidget_2->currentRow();
+    int reihe;
 
     // Loeschen wenn Item vorhanden
     if((ui->tableWidget_2->currentItem()) && (_anzElements >= 0)) {
+        reihe =  ui->tableWidget_2->currentRow();
         //std::cout << "rowCount"  << reihe << std::endl;
         ui->tableWidget_2->removeRow(reihe);
         ui->tableWidget_2->setRowCount(10);
         _anzElements--;
 }
 
+
+
     else {
         std::cout << "Erst waehlen" << std::endl;
     }
+}
+
+
+
+// _________________________________________________________________________________________________
+
+// _________________________________________________________________________________________________
+void MainWindow::deleteItem() {
+
+    if(ui->tableWidget->currentItem()) {
+      //  int index = _listVec.indexOf(ui->tableWidget->currentItem()->text());
+
+
+        _listVec.remove(_listVec.indexOf(ui->tableWidget->currentItem()->text()));
+
+        saveList();
+        initialize();
+}
 
 }
+// _________________________________________________________________________________________________
 
 void MainWindow::editItem(){
 
 
-
     // Editieren wenn Item vorhanden
-    if(ui->tableWidget_2->currentItem()) {
+    if(ui->tableWidget->currentItem()) {
+        QString str = ui->tableWidget->currentItem()->text();
+        QString str1;
+        // Setzt aktuellen Wert in lineEdit
+        Formedit.lineEdit->setText(str);
+        str1 = Formedit.lineEdit_2->text();
+        bool mu = checkItem(str1);
+
+        if(mu == 1) {
+            QMessageBox::information(0, tr("Fehler!"), "Eintrag schon vorhanden.");
+        } else if (mu == 0) {
+            int index = _listVec.indexOf(str);
+            _listVec.replace(index, str1);
+            saveList();
+            initialize();
+        }
 
 
-    ui->tableWidget_2->setRowCount(10);
-    _anzElements--;
 }
 
 }
