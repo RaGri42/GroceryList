@@ -39,12 +39,16 @@
     <item>
      <widget class="QLabel" name="label">
       <property name="text">
-       <string>Lebensmittel</string>
+       <string>Name</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="lineEdit"/>
+     <widget class="QLineEdit" name="lineEdit">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -58,7 +62,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>PushButton</string>
+    <string>Aendern</string>
    </property>
   </widget>
   <widget class="QWidget" name="layoutWidget">
@@ -74,7 +78,7 @@
     <item>
      <widget class="QLabel" name="label_2">
       <property name="text">
-       <string>Neuer Name</string>
+       <string>Shop</string>
       </property>
      </widget>
     </item>

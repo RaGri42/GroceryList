@@ -39,7 +39,7 @@
     <string>Abrechen</string>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -52,7 +52,7 @@
     <item>
      <widget class="QLabel" name="label">
       <property name="text">
-       <string>Lebensmittel</string>
+       <string>Item</string>
       </property>
      </widget>
     </item>
@@ -60,6 +60,29 @@
      <widget class="QLineEdit" name="lineEdit"/>
     </item>
    </layout>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>40</y>
+     <width>41</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Shop</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit_2">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>40</y>
+     <width>341</width>
+     <height>25</height>
+    </rect>
+   </property>
   </widget>
  </widget>
  <resources/>

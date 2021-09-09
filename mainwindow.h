@@ -9,6 +9,7 @@
 
 
 
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -17,11 +18,13 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    bool checkItem(QString itemStr);
+
+    bool checkItem(QString itemStr, QVector<QString>& vec);
 
 
     // Memberfunktionen
@@ -30,6 +33,7 @@ public:
 
 public slots:
     void pushItem();
+
     void deleteItem();
     void deleteItemList();
     void editItem();
@@ -37,6 +41,7 @@ public slots:
     void showEditDialog();
     void writeFood();
     void printList();
+    void printList2();
     void clearList();
     void saveList();
     void initialize();
@@ -61,7 +66,18 @@ public:
      QStringList listi;
 
      // öffentliche Membervariablen
+     // QMap mit Item als Schlüssel und Qvector als Wert, "Shop", "Preis"
+     QMap <QString, QStringList> _itemMap;
+
+     // QMap mit Item als Schlüssel und Qvector als Wert, "Shop", "Preis"
+     QMap <QString, QStringList> _itemMap2;
+
+     // Listenvektor für eingelesene csv
      QVector <QString> _listVec;
+     // Listenvektor für Einkaufsliste
+     QVector <QString> _listVec2;
+
+
      int _anzElements;
      int _rowsTable2;
 };

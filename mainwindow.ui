@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>860</width>
+    <width>1215</width>
     <height>650</height>
    </rect>
   </property>
@@ -48,7 +48,7 @@
      <rect>
       <x>480</x>
       <y>40</y>
-      <width>350</width>
+      <width>481</width>
       <height>400</height>
      </rect>
     </property>
@@ -65,16 +65,16 @@
      </size>
     </property>
     <property name="showGrid">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="rowCount">
      <number>1</number>
     </property>
     <property name="columnCount">
-     <number>1</number>
+     <number>6</number>
     </property>
     <attribute name="horizontalHeaderVisible">
-     <bool>false</bool>
+     <bool>true</bool>
     </attribute>
     <attribute name="horizontalHeaderCascadingSectionResizes">
      <bool>false</bool>
@@ -98,6 +98,31 @@
      <bool>false</bool>
     </attribute>
     <row/>
+    <column>
+     <property name="text">
+      <string>Name</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Shop</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Preis [€]</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Energie [kcal]</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Eiweiss [g]</string>
+     </property>
+    </column>
     <column/>
    </widget>
    <widget class="QTableWidget" name="tableWidget_2">
@@ -116,40 +141,32 @@
      <bool>true</bool>
     </property>
     <property name="rowCount">
-     <number>10</number>
+     <number>0</number>
     </property>
     <property name="columnCount">
-     <number>1</number>
+     <number>0</number>
     </property>
     <attribute name="horizontalHeaderVisible">
      <bool>false</bool>
     </attribute>
     <attribute name="horizontalHeaderCascadingSectionResizes">
-     <bool>true</bool>
+     <bool>false</bool>
+    </attribute>
+    <attribute name="horizontalHeaderMinimumSectionSize">
+     <number>55</number>
     </attribute>
     <attribute name="horizontalHeaderStretchLastSection">
-     <bool>true</bool>
+     <bool>false</bool>
     </attribute>
     <attribute name="verticalHeaderVisible">
      <bool>false</bool>
     </attribute>
     <attribute name="verticalHeaderCascadingSectionResizes">
-     <bool>true</bool>
+     <bool>false</bool>
     </attribute>
     <attribute name="verticalHeaderStretchLastSection">
-     <bool>true</bool>
+     <bool>false</bool>
     </attribute>
-    <row/>
-    <row/>
-    <row/>
-    <row/>
-    <row/>
-    <row/>
-    <row/>
-    <row/>
-    <row/>
-    <row/>
-    <column/>
    </widget>
    <widget class="QPushButton" name="pushButton_3">
     <property name="geometry">
@@ -253,7 +270,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>860</width>
+     <width>1215</width>
      <height>22</height>
     </rect>
    </property>
