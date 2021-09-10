@@ -39,12 +39,15 @@ public slots:
     void editItem();
     void showDialog();
     void showEditDialog();
+    void sortList();
     void writeFood();
     void printList();
     void printList2();
     void clearList();
     void saveList();
     void initialize();
+    void initializeEinkauf();
+    void initializeMap();
 
 
 
@@ -77,7 +80,7 @@ public:
      // Listenvektor für Einkaufsliste
      QVector <QString> _listVec2;
 
-
+     int _columns;
      int _anzElements;
      int _rowsTable2;
 };

@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QFileDialog>
+#include <QPalette>
 #include <QString>
 #include <QTextStream>
 #include <QStringListModel>
@@ -32,13 +33,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->pushButton, SIGNAL(clicked()),this, SLOT(pushItem()));
     connect(ui->pushButton_2, SIGNAL(clicked()),this, SLOT(deleteItemList()));
     connect(ui->tableWidget, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this, SLOT(pushItem()));
-    connect(ui->tableWidget_2, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this, SLOT(deleteItem()));
+    connect(ui->tableWidget_2, SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this, SLOT(deleteItemList()));
     connect(ui->pushButton_4, SIGNAL(clicked()),this, SLOT(printList2()));
     connect(ui->pushButton_5, SIGNAL(clicked()),this, SLOT(clearList()));
     connect(ui->pushButton_6, SIGNAL(clicked()),this, SLOT(initialize()));
     connect(ui->pushButton_3, SIGNAL(clicked()), this, SLOT(showDialog()));
     connect(ui->editButton, SIGNAL(clicked()), this, SLOT(showEditDialog()));
     connect(ui->pushButton_7, SIGNAL(clicked()), this, SLOT(deleteItem()));
+    connect(ui->pushButton_8, SIGNAL(clicked()), this, SLOT(sortList()));
 
 // _________________________________________________________________________________________________
 // Neues Item Dialog initialisieren
@@ -71,10 +73,9 @@ void MainWindow::initialize(){
     _listVec.clear();
     _listVec2.clear();
 
-    int j = 0;
     int rows = 0;
     // csv - Datei welche die Items enthaelt
-    QString itemFile = "Einkaufszettel1.csv";
+    QString itemFile = "Einkaufszettel2.csv";
     QString path = "/home/botage/QTWorkspace/Einkaufsliste/Einkaufsliste/";
     QString fileName = path + itemFile;
     QFile file(fileName);
@@ -90,12 +91,15 @@ void MainWindow::initialize(){
     // Datei einlesen und zeilenweise in QMap schreiben [key] = { used? (y/n), Shop, Preis, kcal, Protein ... }
     // Anzahl der Reihen bestimmen
 
+    // Nur ausführen wenn Einkaufsliste leer ist
+
+
     while(!in.atEnd()) {
         line = in.readLine();
 
         // Auspalten der Linie
         list = line.split(";");
-       // std::cout << pos1.at(0).toStdString() << std::endl;
+
 
         // key extrahieren
         QString key = list.at(0).toLocal8Bit().constData();
@@ -103,37 +107,30 @@ void MainWindow::initialize(){
         list.removeFirst();
         list.prepend("n");
 
-        for (int i = 0; i < list.size(); ++i){
-                std::cout << list.at(i).toLocal8Bit().constData();
-
-                }
-        std::cout << "+++" << std::endl;
-
-        //std::cout << key.toStdString() << "+++++++";
-
         // key und QStringlist in QMap füllen
         _itemMap.insert(key, list);
 
-
-//        for (int i = 0; i < pos1.size(); ++i){
-//        std::cout << pos1.at(i).toLocal8Bit().constData();
-
-//        }
-//        std::cout << "******" << std::endl;
-
-//        _listVec.push_back(line);
         rows++;
     }
 
-//        std::cout << pos1.size() << std::endl;
+
+    _columns = list.size();
+
     // Spalten und Reihen für Tabelle1 setzen
-    ui->tableWidget->setColumnCount(list.size());
+    ui->tableWidget->setColumnCount(_columns);
     ui->tableWidget->setRowCount(rows);
 
     // Spalten für Einkaufsliste setzen
-    ui->tableWidget_2->setColumnCount(list.size());
+    ui->tableWidget_2->setColumnCount(_columns);
     ui->tableWidget_2->setRowCount(1);
+    file.close();
+    initializeMap();
+}
 
+
+void MainWindow::initializeMap() {
+
+    int j = 0;
     // Map Iterator zum durchlaufen der QMap
     QMapIterator<QString, QStringList> it(_itemMap);
     QStringList values;
@@ -165,16 +162,63 @@ void MainWindow::initialize(){
         ui->tableWidget->resizeColumnsToContents();
         ui->tableWidget->sortItems(0);
 
-    file.close();
+
+}
+
+
+
+// _________________________________________________________________________________________________
+// Bei Änderung eines Items in der csv Einkaufsliste neu initialisieren, damit Wert hier übernommen wird
+// _________________________________________________________________________________________________
+
+void MainWindow::initializeEinkauf() {
+
+
+    ui->tableWidget_2->clearContents();
+
+    QMapIterator<QString, QStringList> it(_itemMap);
+    QStringList list;
+    int j = 0;
+        while(it.hasNext()) {
+            it.next();
+
+
+            if(it.value().at(0) == "y") {
+            QTableWidgetItem *keyItem = new QTableWidgetItem(it.key());
+            ui->tableWidget_2->setItem(j, 0, keyItem);
+            // keyItem->setFlags(Qt::ItemIsEnabled);
+            ui->tableWidget_2->resizeColumnToContents(0);
+
+            // Values = QStringList zu angegebenem key
+            list = it.value();
+
+            // QStringList durchlaufen und valueItems setzen
+            for (int i = 1; i < list.size(); i++){
+
+                QTableWidgetItem *valueItem = new QTableWidgetItem(list.at(i));
+                valueItem->setFlags(Qt::ItemIsEnabled);
+                ui->tableWidget_2->setItem(j,i , valueItem);
+
+            }
+            // nächste Zeile
+            j++;
+        }
+        // Tabelle an Inhalt anpassen und sortieren
+        ui->tableWidget_2->resizeColumnsToContents();
+        ui->tableWidget_2->sortItems(0);
+
+
+
+
+}
 }
 
 
 
 // ______________________________________________________________________
-// Pruefen ob String bereits vorkommt (call by reference)
-// Wenn String vorhanden -> 1
+// Pruefen ob String bereits vorkommt (call by reference) Wenn String vorhanden -> 1
 // ______________________________________________________________________
-//
+
 bool MainWindow::checkItem(QString itemStr, QVector<QString>& vec) {
 
     // Pruefen ob der Eintrag(itemStr) schon im gegebenen Vector vorkommt
@@ -184,13 +228,12 @@ bool MainWindow::checkItem(QString itemStr, QVector<QString>& vec) {
     if (ret != vec.end()) {
         return 1;
     }
+
     // Eintrag nicht vorhanden
     else {
         return 0;
      }
 }
-
-
 
 // _________________________________________________________________________________________________
 // Neues Element anlegen Dialog
@@ -210,8 +253,9 @@ void MainWindow::showEditDialog() {
     editform->show();
 
     // Setzt aktuellen Wert in lineEdit
-    Formedit.lineEdit->setText(ui->tableWidget->currentItem()->text());
-
+    QString text = ui->tableWidget->currentItem()->text();
+    Formedit.lineEdit->setText(text);
+    Formedit.lineEdit_2->setText(_itemMap[text].at(1));
     }
 }
 
@@ -237,6 +281,16 @@ void MainWindow::clearList() {
 
 }
 
+
+// _________________________________________________________________________________________________
+// Liste sortieren
+// _________________________________________________________________________________________________
+
+void MainWindow::sortList() {
+
+    ui->tableWidget_2->sortItems(1);
+
+}
 
 // _________________________________________________________________________________________________
 // Liste drucken
@@ -267,9 +321,7 @@ void MainWindow::printList() {
         zeile++;
 
         }
-
-
-}
+    }
 
 // _________________________________________________________________________________________________
 // Liste drucken mit FiledDialog
@@ -277,6 +329,7 @@ void MainWindow::printList() {
 
 void MainWindow::printList2() {
         QString itemName;
+        QString itemName2;
         QString filename = QFileDialog::getSaveFileName(this, "bitte eine Datei auswaehlen", QDir::homePath(),".*pdf");
 
 
@@ -304,7 +357,11 @@ void MainWindow::printList2() {
 
         while(ui->tableWidget_2->item(zeile, 0)) {
         itemName = ui->tableWidget_2->item(zeile,0)->text();
+        itemName2 = ui->tableWidget_2->item(zeile,1)->text();
+
+
         painter.drawText(0,zeilePdf, itemName);
+        painter.drawText(2400,zeilePdf, itemName2);
 
         zeilePdf += 200;
         zeile++;
@@ -342,7 +399,7 @@ void MainWindow::writeFood() {
         //_listVec.push_back(strItem);
         Form.lineEdit->setText("");
         saveList();
-        initialize();
+        initializeMap();
 
          }
 }
@@ -353,7 +410,7 @@ void MainWindow::writeFood() {
 // _________________________________________________________________________________________________
 
 void MainWindow::saveList() {
-     QFile file("/home/botage/QTWorkspace/Einkaufsliste/Einkaufsliste/Einkaufszettel1.csv");
+     QFile file("/home/botage/QTWorkspace/Einkaufsliste/Einkaufsliste/Einkaufszettel2.csv");
 
      if(file.open(QFile::WriteOnly | QFile::Text)) {
         QTextStream out(&file);
@@ -367,12 +424,13 @@ void MainWindow::saveList() {
                 it.next();
 
                 list = it.value();
+                //list.removeFirst();
 
                 out << it.key() ;
                 out <<";" ;
 
-                for (int i = 1; i < list.size() - 1; i++) {
-                    out << list.at(i) << (i < list.size()- 2 ? ";":" ");
+                for (int i = 1; i < list.size() ; ++i) {
+                    out << list.at(i) << (i < list.size()- 1 ? ";":" ");
                 }
                 out << endl;
             }
@@ -396,8 +454,8 @@ void MainWindow::pushItem(){
         // Pruefen ob Eintrag schon vorhanden ist wenn nicht dann steht in der Map in QStringList(0) = n
 
         if(_itemMap[text].at(0) == "n") {
-                // Item aus Tabelle1 clonen
-                // QTableWidgetItem *item2 = ui->tableWidget->currentItem()->clone();
+            // Leere Reihe einfügen am Ende
+
 
                 QTableWidgetItem *item = new QTableWidgetItem(text);
                 // Status in QMap ändern
@@ -405,80 +463,95 @@ void MainWindow::pushItem(){
 
                 //ui->twTable->setItem( 0 , 0 , new QTableWidgetItem( str[i] ) );
 
-                 // Zeilen je nach Inhalt setzen
-                 //ui->tableWidget_2->insertRow(1);
-
                  _anzElements = ui->tableWidget_2->rowCount();
-                // ui->tableWidget_2->insertRow(1);
-                 std::cout << "rowCount" << ui->tableWidget_2->rowCount() << std::endl;
-                 std::cout << "anzElemnts" << _anzElements << std::endl;
 
                  // item in Tabelle2 schreiben
+
                  ui->tableWidget_2->setItem(_anzElements-1, 0, item);
 
-                 // QStringList aus QMap holen und liste zuweisen
-                 //QStringList liste = _itemMap[text];
-                 //std::cout << "sie" << liste.size() << std::endl;
 
                  // QStringList durchlaufen
 
                  for (int i = 1; i < _itemMap[text].size(); ++i){
-                     std::cout << "listeat" << i << _itemMap[text].at(i).toStdString() << std::endl;
-                      std::cout << i << " das ist i" << std::endl;
+
+                    ui->tableWidget_2->setItem(_anzElements - 1 , i , new QTableWidgetItem(_itemMap[text].at(i)) );
+
+                    std::cout <<_itemMap[text].at(1).toStdString() << std::endl;
+                   }
 
 
-
-                   ui->tableWidget_2->setItem(_anzElements - 1 , i , new QTableWidgetItem(_itemMap[text].at(i)) );
-
+                 if(_itemMap[text].at(1) == "Penny") {
+                     std::cout <<_itemMap[text].at(1).toStdString()<< std::endl;
+                         ui->tableWidget_2->item(_anzElements - 1 , 1)->setBackground(QBrush(QColor(204,255,255)));
                  }
 
 
-                   // Leere Reihe einfügen am Ende
-                   // ui->tableWidget_2->sortItems(0);
+                else if(_itemMap[text].at(1) == "Edeka") {
+                ui->tableWidget_2->item(_anzElements - 1 , 1)->setBackground(QBrush(QColor(0,255,33)));
+                std::cout <<_itemMap[text].at(1).toStdString()<< std::endl;
+                 }
+
+                 else {
+                      ui->tableWidget_2->item(_anzElements - 1 , 1)->setBackground(QBrush(QColor(255,255,153)));
+                 }
+
                     ui->tableWidget_2->insertRow(ui->tableWidget_2->rowCount());
                    _itemMap[text][0] = "y";
-               }
 
+
+                   ui->tableWidget_2->resizeColumnsToContents();
+                   ui->tableWidget_2->sortItems(0);
+
+}
         else {
 
             std::cout << "Eintrag schon vorhanden!" << std::endl;
         }
 
+
     }
 }
 
 
+
+
+
+
 // _________________________________________________________________________________________________
-// Einkaufsliste loeschen
+// item aus Einkaufsliste loeschen
 // _________________________________________________________________________________________________
+
 void MainWindow::deleteItemList(){
 
     int reihe;
 
     // Loeschen wenn Item vorhanden
-    if((ui->tableWidget_2->currentItem()) && (_anzElements >= 0)) {
+    if((ui->tableWidget_2->currentItem()) && (ui->tableWidget_2->rowCount())) {
+
+        QString text = ui->tableWidget_2->currentItem()->text();
         reihe =  ui->tableWidget_2->currentRow();
         //std::cout << "rowCount"  << reihe << std::endl;
         ui->tableWidget_2->removeRow(reihe);
-        ui->tableWidget_2->setRowCount(10);
-        _anzElements--;
-}
+        // Setze Index wieder auf n
+        _itemMap[text][0] = "n";
+        //ui->tableWidget_2->setRowCount(10);
+        //_anzElements--;
 
-
-
-    else {
+    } else {
         std::cout << "Erst waehlen" << std::endl;
     }
 }
 
 
 // _________________________________________________________________________________________________
-
+// Item aus csv loeschen
 // _________________________________________________________________________________________________
+
 void MainWindow::deleteItem() {
 
     if(ui->tableWidget->currentItem()) {
       //  int index = _listVec.indexOf(ui->tableWidget->currentItem()->text());
+
 
         QString key = ui->tableWidget->currentItem()->text();
 
@@ -489,9 +562,9 @@ void MainWindow::deleteItem() {
        // _listVec.remove(_listVec.indexOf(ui->tableWidget->currentItem()->text()));
 
         saveList();
-        initialize();
-}
-
+        initializeMap();
+        initializeEinkauf();
+    }
 }
 
 // _________________________________________________________________________________________________
@@ -501,27 +574,36 @@ void MainWindow::deleteItem() {
 void MainWindow::editItem(){
 
     // Editieren nur wenn Item ausgewählt
-    if(ui->tableWidget->currentItem()) {
-        QString str = ui->tableWidget->currentItem()->text();
-        QString str1;
-        // Setzt aktuellen Wert in lineEdit, readOnly
-        Formedit.lineEdit->setReadOnly(1);
-        Formedit.lineEdit->setText(str);
-        str1 = Formedit.lineEdit_2->text();
-        bool mu = checkItem(str1, _listVec);
+    if(ui->tableWidget->currentItem() && ui->tableWidget->currentColumn()==0) {
 
-        if(mu == 1) {
+
+          QString textAlt = ui->tableWidget->currentItem()->text();
+          QString text = Formedit.lineEdit->text();
+          QString str1 = Formedit.lineEdit_2->text();
+          QStringList newList;
+
+        if(_itemMap.count(text) > 0 &&_itemMap[text].at(1) == str1) {
             QMessageBox::information(0, tr("Fehler!"), "Eintrag schon vorhanden.");
-        } else if (mu == 0) {
-            int ret = QMessageBox::question(this,"Aendern?", "Soll der Name wirklich geändert werden?", QMessageBox::Yes | QMessageBox::No);
-            //std::cout << ret << "ret" << std::endl;
+        } else {
+            int ret = QMessageBox::question(this,"Aendern?", "Soll der Eintrag wirklich geändert werden?", QMessageBox::Yes | QMessageBox::No);
 
             if(ret == QMessageBox::Yes) {
-            int index = _listVec.indexOf(str);
-            _listVec.replace(index, str1);
-            saveList();
-            initialize();
+                // alten Zustand in neue Liste übernehmen
+                newList.append(_itemMap[textAlt].at(0));
+                newList.append(str1);
+
+                  _itemMap[text] = newList;
+                   if(text != textAlt) {
+                       _itemMap.remove(textAlt);
+                   }
+
+
             }
+         editform->close();
+            saveList();
+            initializeMap();
+            initializeEinkauf();
+
         }
     }
 }
