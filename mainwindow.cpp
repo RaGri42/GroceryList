@@ -41,6 +41,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->editButton, SIGNAL(clicked()), this, SLOT(showEditDialog()));
     connect(ui->pushButton_7, SIGNAL(clicked()), this, SLOT(deleteItem()));
     connect(ui->pushButton_8, SIGNAL(clicked()), this, SLOT(sortList()));
+    connect(ui->pushButton_10, SIGNAL(clicked()), this, SLOT(saveActiveList()));
+    connect(ui->pushButton_9, SIGNAL(clicked()), this, SLOT(loadActiveList()));
 
 // _________________________________________________________________________________________________
 // Neues Item Dialog initialisieren
@@ -122,7 +124,7 @@ void MainWindow::initialize(){
 
     // Spalten für Einkaufsliste setzen
     ui->tableWidget_2->setColumnCount(_columns);
-    ui->tableWidget_2->setRowCount(1);
+    ui->tableWidget_2->setRowCount(100);
     file.close();
     initializeMap();
 }
@@ -440,6 +442,137 @@ void MainWindow::saveList() {
     file.close();
 }
 
+
+
+// _________________________________________________________________________________________________
+// aktuelle csv Einkaufsliste zwischenspeichern
+// _________________________________________________________________________________________________
+
+void MainWindow::saveActiveList() {
+     QFile file("/home/botage/QTWorkspace/Einkaufsliste/Einkaufsliste/EinkaufszettelAktuell.csv");
+
+     if(file.open(QFile::WriteOnly | QFile::Text)) {
+        QTextStream out(&file);
+
+
+        QMapIterator<QString, QStringList> it(_itemMap2);
+        QStringList list;
+
+            // Alle Eintraege aus QMap in csv speichern
+            while(it.hasNext()) {
+                it.next();
+
+                list = it.value();
+                //list.removeFirst();
+
+                out << it.key() ;
+                out <<";" ;
+
+                for (int i = 1; i < list.size() ; ++i) {
+                    out << list.at(i) << (i < list.size()- 1 ? ";":" ");
+                }
+                out << endl;
+            }
+
+}
+    //file.write("/home/botage/QTWorkspace/Einkaufsliste/Einkaufsliste/Einkaufszettel.csv");
+    file.close();
+}
+
+
+
+//___________________________________________________________________________________________________
+// aktuelle Einkaufsliste laden
+//___________________________________________________________________________________________________
+
+void MainWindow::loadActiveList() {
+
+    int rows = 0;
+    // csv - Datei welche die Items enthaelt
+    QString itemFile = "EinkaufszettelAktuell.csv";
+    QString path = "/home/botage/QTWorkspace/Einkaufsliste/Einkaufsliste/";
+    QString fileName = path + itemFile;
+    QFile file(fileName);
+
+    if(!(file.open(QIODevice::ReadOnly))) {
+        std::cerr << "Datei konnte nicht geoeffnet werden!" << std::endl;
+    }
+
+    QTextStream in(&file);
+    QString line;
+    QStringList list;
+
+    // Datei einlesen und zeilenweise in QMap schreiben [key] = { used? (y/n), Shop, Preis, kcal, Protein ... }
+    // Anzahl der Reihen bestimmen
+
+    // Nur ausführen wenn Einkaufsliste leer ist
+
+
+    while(!in.atEnd()) {
+        line = in.readLine();
+
+        // Auspalten der Linie
+        list = line.split(";");
+
+
+        // key extrahieren
+        QString key = list.at(0).toLocal8Bit().constData();
+        // erste Position der QStringlist entfernen
+
+
+        // key und QStringlist in QMap füllen
+        _itemMap2.insert(key, list);
+
+        rows++;
+    }
+
+    //+++++++++++++++++++++++++++++++
+
+
+    int j = 0;
+    // Map Iterator zum durchlaufen der QMap
+    QMapIterator<QString, QStringList> it(_itemMap2);
+    QStringList values;
+
+        while(it.hasNext()) {
+            it.next();
+            //std::cout << it.key().toStdString() << "##" ;
+
+            // Key in Spalte 0 eintragen und nicht editierbar machen
+            QTableWidgetItem *keyItem = new QTableWidgetItem(it.key());
+            ui->tableWidget_2->setItem(j, 0, keyItem);
+            //keyItem->setFlags(Qt::ItemIsEnabled);
+            ui->tableWidget->resizeColumnToContents(0);
+
+            // Values = QStringList zu angegebenem key
+            values = it.value();
+
+            // QStringList durchlaufen und valueItems setzen
+            for (int i = 1; i < values.size(); i++){
+                QTableWidgetItem *valueItem = new QTableWidgetItem(values.at(i));
+                //valueItem->setFlags(Qt::ItemIsEnabled);
+                ui->tableWidget_2->setItem(j,i , valueItem);
+
+            }
+            // nächste Zeile
+            j++;
+            // Tabelle an Inhalt anpassen und sortieren
+            ui->tableWidget_2->resizeColumnsToContents();
+            ui->tableWidget_2->sortItems(0);
+        }
+
+
+    //+++++++++++++++++++++++++++++++
+
+
+
+
+}
+
+
+
+
+
 // _________________________________________________________________________________________________
 // Item in Einkaufsliste schieben
 // _________________________________________________________________________________________________
@@ -475,6 +608,10 @@ void MainWindow::pushItem(){
                  for (int i = 1; i < _itemMap[text].size(); ++i){
 
                     ui->tableWidget_2->setItem(_anzElements - 1 , i , new QTableWidgetItem(_itemMap[text].at(i)) );
+
+                    // item in QMap schieben für aktuelle Einkaufsliste
+
+                    _itemMap2.insert(text, _itemMap[text]);
 
                     std::cout <<_itemMap[text].at(1).toStdString() << std::endl;
                    }

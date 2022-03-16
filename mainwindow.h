@@ -45,6 +45,8 @@ public slots:
     void printList2();
     void clearList();
     void saveList();
+    void saveActiveList();
+    void loadActiveList();
     void initialize();
     void initializeEinkauf();
     void initializeMap();
